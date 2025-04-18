@@ -1,7 +1,58 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+struct NO
+{
+    char titulo[255];
+    int posicao_primeiro_caracter;
+    int ano;
+    char duracao[255];
+    char diretor[255];
+    char genero[255];
+    bool assistiu;
+    bool gostou;
+
+    struct NO *proximo;
+};
+
+struct LISTA
+{
+    struct NO* topo = NULL;
+    struct NO* fim = NULL;
+    int quantidade = 0;
+};
 
 int main()
 {
+    struct LISTA* lista_filmes = (struct LISTA*) malloc(sizeof(struct LISTA));
+    lista_filmes->topo = NULL;
+    lista_filmes->fim = NULL;
+    lista_filmes->quantidade = 0;
+
+    NO* topo = (struct NO*) malloc(sizeof(struct NO));
+    strcpy(topo->titulo, "Rua Cloverfield, 10");
+    topo->ano = 2004;
+    strcpy(topo->duracao, "2h 10m");
+    strcpy(topo->diretor, "Dan Trachtenberg");
+    strcpy(topo->genero, "Ficcao Cientifica");
+    topo->assistiu = true;
+    topo->gostou = true;
+
+    NO* proximo = (struct NO*) malloc(sizeof(struct NO));
+    strcpy(proximo->titulo, "The End of Evangelion");
+    proximo->ano = 1997;
+    strcpy(proximo->duracao, "1h 13m");
+    strcpy(proximo->diretor, "Hideaki Anno");
+    strcpy(proximo->genero, "Animacao");
+    proximo->assistiu = true;
+    proximo->gostou = false;
+
+    topo->proximo = proximo;
+
+    lista_filmes->topo = topo;
+    lista_filmes->fim = proximo;
+
     printf("================================\n");
     printf("       Catalogo de filmes       \n");
     printf("================================\n");
