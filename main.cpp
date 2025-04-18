@@ -47,6 +47,7 @@ int main()
     strcpy(proximo->genero, "Animacao");
     proximo->assistiu = true;
     proximo->gostou = false;
+    proximo->proximo = NULL;
 
     topo->proximo = proximo;
 
@@ -80,7 +81,25 @@ int main()
         {
             case 1:
                 {
-                    printf("Mostrar catalogo ainda nao implementado!\n\n");
+                    if (lista_filmes->topo == NULL && lista_filmes->fim == NULL)
+                    {
+                        printf("Nenhum filme cadastrado!\n");
+                        break;
+                    }
+
+                    printf("================================\n");
+                    printf("       CATALOGO DE FILMES       \n");
+                    printf("================================\n");
+
+                    struct NO* atual = lista_filmes->topo;
+
+                    while(atual != NULL)
+                    {
+                        printf(" * %s (%i) - %s\n", atual->titulo, atual->ano, atual->duracao);
+
+                        atual = atual->proximo;
+                    }
+                    printf("\n\n");
                     break;
                 }
             case 2:
