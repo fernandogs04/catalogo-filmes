@@ -142,12 +142,127 @@ LISTA* buscar_filmes(LISTA* lista_filmes)
         return lista_resultado;
     }
 
-    if (lista_resultado->quantidade == 0) {
-        printf("Nenhum filme encontrado.\n\n\n");
-        return lista_resultado;
+    return lista_resultado;
+}
+
+FILME* escolher_filme(LISTA *lista)
+{
+    FILME* filme_escolhido = NULL;
+
+    if (lista->quantidade == 1)
+    {
+        return lista->topo->filme;
+    }
+    else
+    {
+        printf("Resultados da busca:\n");
+        FILME *resultados[lista->quantidade];
+
+        NO *atual = lista->topo;
+        for (int i = 0; i < lista->quantidade; i++)
+        {
+            resultados[i] = atual->filme;
+            printf(" %i %s (%i) - %s\n", i + 1, atual->filme->titulo, atual->filme->ano, atual->filme->duracao);
+            atual = atual->proximo;
+        }
+
+        fflush(stdin);
+        printf("Escolha um filme (1, 2, etc): ");
+        int indice_filme_escolhido = 0;
+        scanf("%i", &indice_filme_escolhido);
+        indice_filme_escolhido--;
+
+        if (indice_filme_escolhido < 0 || indice_filme_escolhido >= lista->quantidade)
+        {
+            printf("Numero incorreto ou nao encontrado na lista.\n\n\n");
+            return NULL;
+        }
+
+        filme_escolhido = resultados[indice_filme_escolhido];
+    }
+    return filme_escolhido;
+}
+
+void retirar_filme_do_comeco(LISTA* lista)
+{
+    struct NO* aux = lista->topo;
+    FILME* valor = aux->filme;
+    lista->topo = lista->topo->proximo;
+
+    if (lista->topo == NULL)
+    {
+        lista->fim = NULL;
+    }
+    free(aux);
+    free(valor);
+}
+
+void retirar_filme_do_meio(LISTA* lista, FILME* filme_escolhido)
+{
+    struct NO* anterior = lista->topo;
+    struct NO* atual = lista->topo->proximo;
+    struct NO* proximo = lista->topo->proximo->proximo;
+
+    while(atual->filme != filme_escolhido)
+    {
+        anterior = atual;
+        atual = proximo;
+        proximo = proximo->proximo;
     }
 
-    return lista_resultado;
+    NO* aux = atual;
+
+    anterior->proximo = proximo;
+
+    free(aux->filme);
+    free(aux);
+}
+
+void retirar_filme_do_final(LISTA* lista)
+{
+    if (lista->topo->proximo == NULL)
+    {
+        FILME* valor = lista->topo->filme;
+        free(lista->topo);
+        free(valor);
+
+        lista->topo = NULL;
+        lista->fim = NULL;
+
+        return;
+    }
+
+    struct NO* ultimo = lista->topo;
+    struct NO* penultimo = NULL;
+    while(ultimo->proximo != NULL)
+    {
+        penultimo = ultimo;
+        ultimo = ultimo->proximo;
+    }
+
+    FILME* valor = ultimo->filme;
+    penultimo-> proximo = NULL;
+    lista->fim = penultimo;
+    free(ultimo);
+    free(valor);
+
+    return;
+}
+
+void deletar_filme(LISTA* lista, FILME* filme_escolhido)
+{
+    if (lista->topo->filme == filme_escolhido)
+    {
+        retirar_filme_do_comeco(lista);
+        return;
+    }
+    else if (lista->fim->filme == filme_escolhido)
+    {
+        retirar_filme_do_final(lista);
+        return;
+    }
+
+    retirar_filme_do_meio(lista, filme_escolhido);
 }
 
 int main()
@@ -185,6 +300,7 @@ int main()
         printf("2 - Cadastrar filme\n");
         printf("3 - Buscar filme\n");
         printf("4 - Pegar recomendacao de filme\n");
+        printf("5 - Remover filme\n");
         printf("9 - Sair\n");
         printf("================================\n");
         printf("\n\nDigite a opcao(ex: 1): ");
@@ -276,8 +392,10 @@ int main()
             case 3:
                 {
                     LISTA* lista_resultado = buscar_filmes(lista_filmes);
-                    if (lista_resultado->topo == NULL && lista_resultado->fim == NULL)
+
+                    if (lista_resultado->quantidade == 0)
                     {
+                        printf("Nenhum filme encontrado.\n\n\n");
                         free(lista_resultado);
                         break;
                     }
@@ -312,6 +430,55 @@ int main()
             case 4:
                 {
                     printf("Pegar recomendacao de filme ainda nao implementado!\n\n");
+                    break;
+                }
+            case 5:
+                {
+                    LISTA* lista_resultado = buscar_filmes(lista_filmes);
+
+                    if (lista_resultado->quantidade == 0)
+                    {
+                        printf("Nenhum filme encontrado.\n\n\n");
+                        free(lista_resultado);
+                        break;
+                    }
+
+                    FILME* filme_escolhido = escolher_filme(lista_resultado);
+                    if (filme_escolhido == NULL)
+                    {
+                        break;
+                    }
+
+                    fflush(stdin);
+                    printf("Quer deletar o filme %s (%i)? (sim/nao): ", filme_escolhido->titulo, filme_escolhido->ano);
+                    char deletar_texto[255];
+                    scanf(" %[^\n]", &deletar_texto);
+                    bool deletar = strcmp(deletar_texto, "sim") == 0;
+
+                    if (deletar)
+                    {
+                        deletar_filme(lista_filmes, filme_escolhido);
+                        printf("Filme deletado como sucesso!\n");
+                    }
+
+                    printf("\n\n");
+
+                    // Liberar lista sem liberar filme
+                    NO* atual = lista_resultado->topo;
+                    NO *proximo;
+
+                    while(atual != NULL)
+                    {
+                        proximo = atual->proximo;
+                        free(atual);
+                        atual = proximo;
+                    }
+
+                    lista_resultado->topo = NULL;
+                    lista_resultado->fim = NULL;
+                    lista_resultado->quantidade = 0;
+
+                    free(lista_resultado);
                     break;
                 }
             case 9:
