@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 struct FILME
 {
@@ -75,6 +76,78 @@ void liberar_lista(struct LISTA *lista)
     lista->quantidade = 0;
 
     free(lista);
+}
+
+LISTA* buscar_filmes(LISTA* lista_filmes)
+{
+    printf("\n\n");
+    fflush(stdin);
+    printf("Digite o tipo de busca (titulo, ano): ");
+    char tipo_busca[255];
+    scanf(" %[^\n]", tipo_busca);
+
+    LISTA* lista_resultado = (struct LISTA*) malloc(sizeof(struct LISTA));
+    lista_resultado->topo = NULL;
+    lista_resultado->fim = NULL;
+    lista_resultado->quantidade = 0;
+
+    NO* atual = lista_filmes->topo;
+
+    if (strcmp(tipo_busca, "titulo") == 0)
+    {
+        fflush(stdin);
+        printf("Digite o termo para buscar no titulo: ");
+        char termo[255];
+        scanf(" %[^\n]", termo);
+
+        // Deixar termo em minúsculo e tirar quebra de linha
+        for (int i = 0; i < strlen(termo); i++) {
+            termo[i] = tolower(termo[i]);
+        }
+        termo[strlen(termo) - 1] = '\0';
+
+        while(atual != NULL)
+        {
+            // Deixar titulo em minúsculo
+            char titulo_filme[255] = "";
+            for (int i = 0; i < strlen(atual->filme->titulo); i++) {
+                titulo_filme[i] = tolower(atual->filme->titulo[i]);
+            }
+            if (strstr(titulo_filme, termo) != NULL)
+            {
+                adicionar_filme_a_lista(lista_resultado, atual->filme);
+            }
+            atual = atual->proximo;
+        }
+    }
+    else if (strcmp(tipo_busca, "ano") == 0)
+    {
+        fflush(stdin);
+        printf("Digite o ano para buscar: ");
+        int ano_busca;
+        scanf("%d", &ano_busca);
+
+        while(atual != NULL)
+        {
+            if (atual->filme->ano == ano_busca)
+            {
+                adicionar_filme_a_lista(lista_resultado, atual->filme);
+            }
+            atual = atual->proximo;
+        }
+    }
+    else
+    {
+        printf("Tipo de busca invalido.\n\n\n");
+        return lista_resultado;
+    }
+
+    if (lista_resultado->quantidade == 0) {
+        printf("Nenhum filme encontrado.\n\n\n");
+        return lista_resultado;
+    }
+
+    return lista_resultado;
 }
 
 int main()
@@ -202,7 +275,38 @@ int main()
                 }
             case 3:
                 {
-                    printf("Buscar filme ainda nao implementado!\n\n");
+                    LISTA* lista_resultado = buscar_filmes(lista_filmes);
+                    if (lista_resultado->topo == NULL && lista_resultado->fim == NULL)
+                    {
+                        free(lista_resultado);
+                        break;
+                    }
+
+                    printf("Resultados da busca:\n");
+                    NO* atual = lista_resultado->topo;
+                    while(atual != NULL)
+                    {
+                        printf(" * %s (%i) - %s\n", atual->filme->titulo, atual->filme->ano, atual->filme->duracao);
+                        atual = atual->proximo;
+                    }
+                    printf("\n\n");
+
+                    // Liberar lista sem liberar filme
+                    atual = lista_resultado->topo;
+                    NO *proximo;
+
+                    while(atual != NULL)
+                    {
+                        proximo = atual->proximo;
+                        free(atual);
+                        atual = proximo;
+                    }
+
+                    lista_resultado->topo = NULL;
+                    lista_resultado->fim = NULL;
+                    lista_resultado->quantidade = 0;
+
+                    free(lista_resultado);
                     break;
                 }
             case 4:
