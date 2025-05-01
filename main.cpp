@@ -265,6 +265,52 @@ void deletar_filme(LISTA* lista, FILME* filme_escolhido)
     retirar_filme_do_meio(lista, filme_escolhido);
 }
 
+void ordernar_por_ano(LISTA* lista) {
+    if (lista->topo == NULL && lista->fim == NULL && lista->quantidade == 0)
+    {
+        printf("Nenhum filme cadastrado!\n");
+        return;
+    }
+
+    for (int k = 1; k < lista->quantidade; k++)
+    {
+        struct NO *anterior = NULL;
+        struct NO *atual = lista->topo;
+        for (int j = 0; j < lista->quantidade - 1; j++)
+        {
+            struct NO *proximo = atual->proximo;
+
+            if (proximo->filme->ano < atual->filme->ano)
+            {
+                if (lista->topo == atual)
+                {
+                    struct NO *aux = proximo->proximo;
+                    lista->topo = proximo;
+                    proximo->proximo = atual;
+                    atual->proximo = aux;
+
+                    anterior = lista->topo;
+
+                    continue;
+                }
+
+                struct NO *proximo_do_proximo = proximo->proximo;
+                struct NO *aux = atual;
+
+                atual = proximo;
+                anterior->proximo = atual;
+
+                proximo = aux;
+                atual->proximo = proximo;
+                proximo->proximo = proximo_do_proximo;
+            }
+
+            anterior = atual;
+            atual = atual->proximo;
+        }
+    }
+}
+
 int main()
 {
     struct LISTA* lista_filmes = (struct LISTA*) malloc(sizeof(struct LISTA));
@@ -272,14 +318,14 @@ int main()
     lista_filmes->fim = NULL;
     lista_filmes->quantidade = 0;
 
-    cadastrar_filme(lista_filmes, "The End of Evangelion", 1997, "1h 13m", "Hideaki Anno", "Animacao", true, false);
-    cadastrar_filme(lista_filmes, "Rua Cloverfield, 10", 2004, "2h 10m", "Dan Trachtenberg", "Ficcao Cientifica", true, true);
-    cadastrar_filme(lista_filmes, "Scott Pilgrim Contra o Mundo", 2007, "3h 10m", "Edgar Wright", "Comedia", true, true);
-    cadastrar_filme(lista_filmes, "Expresso do Amanha", 2013, "2h 7m", "Bong Joon Ho", "Ficcao Cientifica", true, true);
-    cadastrar_filme(lista_filmes, "Filme Lego", 2014, "2h", "Christopher Miller", "Animacao", true, false);
     cadastrar_filme(lista_filmes, "Emoji Filme", 2018, "2h", "Tony Leondis", "Animacao", false, false);
-    cadastrar_filme(lista_filmes, "Parasita", 2019, "2h 13m", "Bong Joon Ho", "Comedia", true, true);
+    cadastrar_filme(lista_filmes, "Scott Pilgrim Contra o Mundo", 2007, "3h 10m", "Edgar Wright", "Comedia", true, true);
     cadastrar_filme(lista_filmes, "The Batman", 2022, "3h", "Matt Reeves", "Crime", false, false);
+    cadastrar_filme(lista_filmes, "Parasita", 2019, "2h 13m", "Bong Joon Ho", "Comedia", true, true);
+    cadastrar_filme(lista_filmes, "Expresso do Amanha", 2013, "2h 7m", "Bong Joon Ho", "Ficcao Cientifica", true, true);
+    cadastrar_filme(lista_filmes, "Rua Cloverfield, 10", 2004, "2h 10m", "Dan Trachtenberg", "Ficcao Cientifica", true, true);
+    cadastrar_filme(lista_filmes, "The End of Evangelion", 1997, "1h 13m", "Hideaki Anno", "Animacao", true, false);
+    cadastrar_filme(lista_filmes, "Filme Lego", 2014, "2h", "Christopher Miller", "Animacao", true, false);
     cadastrar_filme(lista_filmes, "Mickey 17", 2025, "2h 17m", "Bong Joon Ho", "Ficcao Cientifica", false, false);
 
     printf("================================\n");
@@ -320,6 +366,8 @@ int main()
                     printf("================================\n");
                     printf("       CATALOGO DE FILMES       \n");
                     printf("================================\n");
+
+                    ordernar_por_ano(lista_filmes);
 
                     struct NO* atual = lista_filmes->topo;
 
