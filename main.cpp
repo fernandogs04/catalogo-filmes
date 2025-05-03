@@ -311,6 +311,49 @@ void ordernar_por_ano(LISTA* lista) {
     }
 }
 
+int calcular_pontuacao_diretor_e_genero(LISTA *lista_filmes, char diretor[255], char genero[255])
+{
+    int pontuacao_diretor = 0;
+    int pontuacao_genero = 0;
+    struct NO *filme_assistido = lista_filmes->topo;
+    while (filme_assistido != NULL)
+    {
+        if (!filme_assistido->filme->assistiu)
+        {
+            filme_assistido = filme_assistido->proximo;
+            continue;
+        }
+
+        if (strcmp(filme_assistido->filme->diretor, diretor) == 0)
+        {
+            if (filme_assistido->filme->gostou)
+            {
+                pontuacao_diretor += 1;
+            }
+            else
+            {
+                pontuacao_diretor -= 1;
+            }
+        }
+
+        if (strcmp(filme_assistido->filme->genero, genero) == 0)
+        {
+            if (filme_assistido->filme->gostou)
+            {
+                pontuacao_genero += 1;
+            }
+            else
+            {
+                pontuacao_genero -= 1;
+            }
+        }
+
+        filme_assistido = filme_assistido->proximo;
+    }
+
+    return pontuacao_diretor + pontuacao_genero;
+}
+
 int main()
 {
     struct LISTA* lista_filmes = (struct LISTA*) malloc(sizeof(struct LISTA));
@@ -477,7 +520,37 @@ int main()
                 }
             case 4:
                 {
-                    printf("Pegar recomendacao de filme ainda nao implementado!\n\n");
+                    struct FILME *recomendado = NULL;
+                    int max_pontuacao = INT_MIN;
+
+                    struct NO *atual = lista_filmes->topo;
+                    while (atual != NULL)
+                    {
+                        if (atual->filme->assistiu)
+                        {
+                            atual = atual->proximo;
+                            continue;
+                        }
+
+                        int pontuacao_total = calcular_pontuacao_diretor_e_genero(lista_filmes, atual->filme->diretor, atual->filme->genero);
+
+                        if (pontuacao_total > max_pontuacao || recomendado == NULL)
+                        {
+                            max_pontuacao = pontuacao_total;
+                            recomendado = atual->filme;
+                        }
+                        atual = atual->proximo;
+                    }
+
+                    if (recomendado != NULL)
+                    {
+                        printf("O filme indicado e %s (%i)\n", recomendado->titulo, recomendado->ano);
+                    }
+                    else
+                    {
+                        printf("Voce ja assistiu todos os filmes cadastrados.\n");
+                    }
+                    printf("\n\n");
                     break;
                 }
             case 5:
