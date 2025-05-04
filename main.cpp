@@ -265,7 +265,36 @@ void deletar_filme(LISTA* lista, FILME* filme_escolhido)
     retirar_filme_do_meio(lista, filme_escolhido);
 }
 
-void ordernar_por_ano(LISTA* lista) {
+void trocar_filmes(LISTA *lista, NO *&anterior, NO *&atual, NO *&proximo)
+{
+    if (lista->topo == atual)
+    {
+        struct NO *aux = proximo->proximo;
+        lista->topo = proximo;
+        proximo->proximo = atual;
+        atual->proximo = aux;
+
+        anterior = lista->topo;
+
+        return;
+    }
+
+    struct NO *proximo_do_proximo = proximo->proximo;
+    struct NO *aux = atual;
+
+    atual = proximo;
+    anterior->proximo = atual;
+
+    proximo = aux;
+    atual->proximo = proximo;
+    proximo->proximo = proximo_do_proximo;
+
+    anterior = atual;
+    atual = atual->proximo;
+}
+
+void ordernar_por_ano(LISTA *lista)
+{
     if (lista->topo == NULL && lista->fim == NULL && lista->quantidade == 0)
     {
         printf("Nenhum filme cadastrado!\n");
@@ -282,27 +311,36 @@ void ordernar_por_ano(LISTA* lista) {
 
             if (proximo->filme->ano < atual->filme->ano)
             {
-                if (lista->topo == atual)
-                {
-                    struct NO *aux = proximo->proximo;
-                    lista->topo = proximo;
-                    proximo->proximo = atual;
-                    atual->proximo = aux;
+                trocar_filmes(lista, anterior, atual, proximo);
+                continue;
+            }
 
-                    anterior = lista->topo;
+            anterior = atual;
+            atual = atual->proximo;
+        }
+    }
+}
 
-                    continue;
-                }
+void ordernar_por_titulo(LISTA *lista)
+{
+    if (lista->topo == NULL && lista->fim == NULL && lista->quantidade == 0)
+    {
+        printf("Nenhum filme cadastrado!\n");
+        return;
+    }
 
-                struct NO *proximo_do_proximo = proximo->proximo;
-                struct NO *aux = atual;
+    for (int k = 1; k < lista->quantidade; k++)
+    {
+        struct NO *anterior = NULL;
+        struct NO *atual = lista->topo;
+        for (int j = 0; j < lista->quantidade - 1; j++)
+        {
+            struct NO *proximo = atual->proximo;
 
-                atual = proximo;
-                anterior->proximo = atual;
-
-                proximo = aux;
-                atual->proximo = proximo;
-                proximo->proximo = proximo_do_proximo;
+            if (strcmp(atual->filme->titulo, proximo->filme->titulo) > 0)
+            {
+                trocar_filmes(lista, anterior, atual, proximo);
+                continue;
             }
 
             anterior = atual;
@@ -410,7 +448,28 @@ int main()
                     printf("       CATALOGO DE FILMES       \n");
                     printf("================================\n");
 
-                    ordernar_por_ano(lista_filmes);
+                    if (lista_filmes->quantidade > 1)
+                    {
+                        printf("\n\n");
+                        fflush(stdin);
+                        printf("Como deseja ordenar os filmes? (ano, titulo): ");
+                        char opcao[255];
+                        scanf(" %[^\n]", &opcao);
+
+                        if (strcmp(opcao, "ano") == 0)
+                        {
+                            ordernar_por_ano(lista_filmes);
+                        }
+                        else if (strcmp(opcao, "titulo") == 0)
+                        {
+                            ordernar_por_titulo(lista_filmes);
+                        }
+                        else
+                        {
+                            printf("Tipo de ordenacao invalido.\n");
+                            break;
+                        }
+                    }
 
                     struct NO* atual = lista_filmes->topo;
 
