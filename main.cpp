@@ -3,6 +3,33 @@
 #include <string.h>
 #include <ctype.h>
 
+#ifdef _WIN32
+#include <conio.h>
+#else
+#include <termios.h>
+#include <unistd.h>
+#endif
+
+#define PRETO "\x1b[38;5;0m"
+#define VERMELHO "\x1b[38;5;9m"
+#define VERMELHO_ESCURO "\x1b[38;5;1m"
+#define VERDE "\x1b[38;5;46m"
+#define VERDE_ESCURO "\x1b[38;5;22m"
+#define AMARELO "\x1b[38;5;226m"
+#define AMARELO_ESCURO "\x1b[38;5;142m"
+#define AZUL "\x1b[38;5;21m"
+#define AZUL_ESCURO "\x1b[38;5;18m"
+#define MAGENTA "\x1b[38;5;200m"
+#define MAGENTA_ESCURO "\x1b[38;5;90m"
+#define CIANO "\x1b[38;5;51m"
+#define CIANO_ESCURO "\x1b[38;5;30m"
+#define CINZA_CLARO "\x1b[38;5;250m"
+#define CINZA "\x1b[38;5;245m"
+#define CINZA_ESCURO "\x1b[38;5;238m"
+#define BRANCO "\x1b[38;5;15m"
+
+#define RESET "\x1B[0m"
+
 struct FILME
 {
     char titulo[255];
@@ -27,6 +54,37 @@ struct LISTA
     struct NO* fim = NULL;
     int quantidade = 0;
 };
+
+void limpar_tela()
+{
+    #ifdef _WIN32
+        system("cls");
+    #else
+        system("clear");
+    #endif
+}
+
+void esperar_enter()
+{
+    printf(BRANCO "Aperte " VERDE "ENTER" BRANCO " para continuar...\n");
+    printf(RESET);
+    fflush(stdout);
+    
+    #ifdef _WIN32
+        while (_kbhit()) _getch();
+        while (_getch() != '\r');
+    #else
+        struct termios oldt, newt;
+        tcgetattr(STDIN_FILENO, &oldt)
+        newt = oldt;
+        newt.c_lflag &= ~(ICANON | ECHO);
+        tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+
+        while (getchar() != '\n');
+
+        tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+    #endif
+}
 
 void adicionar_filme_a_lista(LISTA *lista, FILME *novo_filme)
 {
@@ -82,7 +140,8 @@ LISTA* buscar_filmes(LISTA* lista_filmes)
 {
     printf("\n\n");
     fflush(stdin);
-    printf("Digite o tipo de busca (titulo, ano): ");
+    printf(BRANCO "Digite o tipo de busca (" VERDE "titulo" BRANCO ", " VERDE "ano" BRANCO "): ");
+    printf(RESET);
     char tipo_busca[255];
     scanf(" %[^\n]", tipo_busca);
 
@@ -96,7 +155,8 @@ LISTA* buscar_filmes(LISTA* lista_filmes)
     if (strcmp(tipo_busca, "titulo") == 0)
     {
         fflush(stdin);
-        printf("Digite o termo para buscar no titulo: ");
+        printf(BRANCO "Digite o termo para buscar no titulo: ");
+        printf(RESET);
         char termo[255];
         scanf(" %[^\n]", termo);
 
@@ -123,7 +183,8 @@ LISTA* buscar_filmes(LISTA* lista_filmes)
     else if (strcmp(tipo_busca, "ano") == 0)
     {
         fflush(stdin);
-        printf("Digite o ano para buscar: ");
+        printf(BRANCO "Digite o ano para buscar: ");
+        printf(RESET);
         int ano_busca;
         scanf("%d", &ano_busca);
 
@@ -138,7 +199,8 @@ LISTA* buscar_filmes(LISTA* lista_filmes)
     }
     else
     {
-        printf("Tipo de busca invalido.\n\n\n");
+        printf(VERMELHO "Tipo de busca invalido.\n\n\n");
+        printf(RESET);
         return lista_resultado;
     }
 
@@ -155,26 +217,29 @@ FILME* escolher_filme(LISTA *lista)
     }
     else
     {
-        printf("Resultados da busca:\n");
+        printf(BRANCO "Resultados da busca:\n");
         FILME *resultados[lista->quantidade];
 
         NO *atual = lista->topo;
         for (int i = 0; i < lista->quantidade; i++)
         {
             resultados[i] = atual->filme;
-            printf(" %i %s (%i) - %s\n", i + 1, atual->filme->titulo, atual->filme->ano, atual->filme->duracao);
+            printf(BRANCO " %i " VERDE "%s " AZUL "(" VERDE "%i" AZUL ") - " VERDE "%s\n", i + 1, atual->filme->titulo, atual->filme->ano, atual->filme->duracao);
+            printf(RESET);
             atual = atual->proximo;
         }
 
         fflush(stdin);
-        printf("Escolha um filme (1, 2, etc): ");
+        printf(BRANCO "Escolha um filme (" VERDE "1" BRANCO ", " VERDE "2" BRANCO "): ");
+        printf(RESET);
         int indice_filme_escolhido = 0;
         scanf("%i", &indice_filme_escolhido);
         indice_filme_escolhido--;
 
         if (indice_filme_escolhido < 0 || indice_filme_escolhido >= lista->quantidade)
         {
-            printf("Numero incorreto ou nao encontrado na lista.\n\n\n");
+            printf(VERMELHO"Numero incorreto ou nao encontrado na lista.\n\n\n");
+            printf(RESET);
             return NULL;
         }
 
@@ -297,7 +362,8 @@ void ordernar_por_ano(LISTA *lista)
 {
     if (lista->topo == NULL && lista->fim == NULL && lista->quantidade == 0)
     {
-        printf("Nenhum filme cadastrado!\n");
+        printf(VERMELHO "Nenhum filme cadastrado!\n");
+        printf(RESET);
         return;
     }
 
@@ -325,7 +391,8 @@ void ordernar_por_titulo(LISTA *lista)
 {
     if (lista->topo == NULL && lista->fim == NULL && lista->quantidade == 0)
     {
-        printf("Nenhum filme cadastrado!\n");
+        printf(VERMELHO "Nenhum filme cadastrado!\n");
+        printf(RESET);
         return;
     }
 
@@ -409,29 +476,35 @@ int main()
     cadastrar_filme(lista_filmes, "Filme Lego", 2014, "2h", "Christopher Miller", "Animacao", true, false);
     cadastrar_filme(lista_filmes, "Mickey 17", 2025, "2h 17m", "Bong Joon Ho", "Ficcao Cientifica", false, false);
 
-    printf("================================\n");
-    printf("       Catalogo de filmes       \n");
-    printf("================================\n");
-    printf("Integrantes:\n");
-    printf("Gabriel Vismeck Costa Stabel - 2022102006\n");
-    printf("Fernando Galvao Smaniotto - 2022102099\n");
-    printf("Kimberly Rayanne - 2022102025\n");
-    printf("Maria Carolina - 2022202695\n");
+    printf(BRANCO "================================\n");
+    printf(VERDE "       Catalogo de filmes       \n");
+    printf(BRANCO "================================\n");
+    printf(RESET);
+
+    printf(BRANCO "Integrantes:\n");
+    printf(AZUL "Gabriel Vismeck Costa Stabel - " VERDE "2022102006\n");
+    printf(AZUL "Fernando Galvao Smaniotto - " VERDE "2022102099\n");
+    printf(AZUL "Kimberly Rayanne - " VERDE "2022102025\n");
+    printf(AZUL "Maria Carolina - " VERDE "2022202695\n");
+    printf(RESET);
 
     while(true)
     {
         int opcao_selecionada = 0;
 
-        printf("================================\n");
-        printf("1 - Mostrar catalogo\n");
-        printf("2 - Cadastrar filme\n");
-        printf("3 - Buscar filme\n");
-        printf("4 - Pegar recomendacao de filme\n");
-        printf("5 - Remover filme\n");
-        printf("9 - Sair\n");
-        printf("================================\n");
-        printf("\n\nDigite a opcao(ex: 1): ");
+        printf(BRANCO "================================\n");
+        printf(VERDE "1 " AZUL "- Mostrar catalogo\n");
+        printf(VERDE "2 " AZUL "- Cadastrar filme\n");
+        printf(VERDE "3 " AZUL "- Buscar filme\n");
+        printf(VERDE "4 " AZUL "- Pegar recomendacao de filme\n");
+        printf(VERDE "5 " AZUL "- Remover filme\n");
+        printf(VERDE "9 " AZUL "- Sair\n");
+        printf(BRANCO "================================\n");
+        printf("\n\nDigite a opcao(ex: " VERDE "1" BRANCO "): ");
+        printf(RESET);
         scanf("%i", &opcao_selecionada);
+
+        limpar_tela();
 
         switch(opcao_selecionada)
         {
@@ -440,19 +513,21 @@ int main()
                     printf("\n");
                     if (lista_filmes->topo == NULL && lista_filmes->fim == NULL)
                     {
-                        printf("Nenhum filme cadastrado!\n");
+                        printf(VERMELHO "Nenhum filme cadastrado!\n\n");
+                        printf(RESET);
+
+                        esperar_enter();
+                        limpar_tela();
+
                         break;
                     }
-
-                    printf("================================\n");
-                    printf("       CATALOGO DE FILMES       \n");
-                    printf("================================\n");
 
                     if (lista_filmes->quantidade > 1)
                     {
                         printf("\n\n");
                         fflush(stdin);
-                        printf("Como deseja ordenar os filmes? (ano, titulo): ");
+                        printf(BRANCO "Como deseja ordenar os filmes? (" VERDE "ano" BRANCO ", " VERDE "titulo" BRANCO "): ");
+                        printf(RESET);
                         char opcao[255];
                         scanf(" %[^\n]", &opcao);
 
@@ -466,52 +541,72 @@ int main()
                         }
                         else
                         {
-                            printf("Tipo de ordenacao invalido.\n");
+                            printf(VERMELHO "Tipo de ordenacao invalido.\n\n");
+                            printf(RESET);
+
+                            esperar_enter();
+                            limpar_tela();
+
                             break;
                         }
                     }
+
+                    printf(BRANCO "================================\n");
+                    printf(VERDE "       CATALOGO DE FILMES       \n");
+                    printf(BRANCO"================================\n");
+                    printf(RESET);
 
                     struct NO* atual = lista_filmes->topo;
 
                     while(atual != NULL)
                     {
-                        printf(" * %s (%i) - %s\n", atual->filme->titulo, atual->filme->ano, atual->filme->duracao);
+                        printf(BRANCO " * " VERDE "%s " AZUL "(" VERDE "%i" AZUL ") - " VERDE"%s\n", atual->filme->titulo, atual->filme->ano, atual->filme->duracao);
+                        printf(RESET);
 
                         atual = atual->proximo;
                     }
                     printf("\n\n");
+
+                    esperar_enter();
+                    limpar_tela();
                     break;
                 }
             case 2:
                 {
                     printf("\n");
                     fflush(stdin);
-                    printf("Digite o nome do filme (ex: Mickey 17): ");
+                    printf(BRANCO "Digite o nome do filme (ex: " VERDE "Mickey 17" BRANCO"): ");
+                    printf(RESET);
                     char titulo[255];
                     scanf(" %[^\n]", &titulo);
 
                     fflush(stdin);
-                    printf("Digite o ano do filme (ex: 2025): ");
+                    printf(BRANCO "Digite o ano do filme (ex: " VERDE "2025" BRANCO"): ");
+                    printf(RESET);
                     int ano;
                     scanf("%i", &ano);
 
                     fflush(stdin);
-                    printf("Digite a duracao do filme (ex: 2h 17m): ");
+                    printf(BRANCO "Digite a duracao do filme (ex: " VERDE "2h 17m" BRANCO"): ");
+                    printf(RESET);
                     char duracao[255];
                     scanf(" %[^\n]", &duracao);
 
                     fflush(stdin);
-                    printf("Digite o diretor do filme (ex: Zack Snyder): ");
+                    printf(BRANCO "Digite o diretor do filme (ex: " VERDE "Zack Snyder" BRANCO"): ");
+                    printf(RESET);
                     char diretor[255];
                     scanf(" %[^\n]", &diretor);
 
                     fflush(stdin);
-                    printf("Digite o genero do filme (ex: Comedia): ");
+                    printf(BRANCO "Digite o genero do filme (ex: " VERDE "Comedia" BRANCO"): ");
+                    printf(RESET);
                     char genero[255];
                     scanf(" %[^\n]", &genero);
 
                     fflush(stdin);
-                    printf("Ja assistiu o filme? (sim/nao): ");
+                    printf(BRANCO "Ja assistiu o filme? (" VERDE "sim" BRANCO"/" VERDE "nao" BRANCO"): ");
+                    printf(RESET);
                     char assistiu_texto[255];
                     scanf(" %[^\n]", &assistiu_texto);
                     bool assistiu = strcmp(assistiu_texto, "sim") == 0;
@@ -520,7 +615,8 @@ int main()
                     if (assistiu)
                     {
                         fflush(stdin);
-                        printf("Gostou do filme? (sim/nao): ");
+                        printf(BRANCO "Gostou do filme? (" VERDE "sim" BRANCO"/" VERDE "nao" BRANCO"): ");
+                        printf(RESET);
                         char gostou_texto[255];
                         scanf(" %[^\n]", &gostou_texto);
                         gostou = strcmp(gostou_texto, "sim") == 0;
@@ -536,7 +632,14 @@ int main()
                         assistiu,
                         gostou
                     );
+
+                    printf(VERDE "Filme cadastrado com sucesso!\n");
+                    printf(RESET);
                     printf("\n\n");
+
+                    esperar_enter();
+                    limpar_tela();
+
                     break;
                 }
             case 3:
@@ -545,19 +648,29 @@ int main()
 
                     if (lista_resultado->quantidade == 0)
                     {
-                        printf("Nenhum filme encontrado.\n\n\n");
+                        printf(VERMELHO "Nenhum filme encontrado.\n\n\n");
+                        printf(RESET);
                         free(lista_resultado);
+
+                        esperar_enter();
+                        limpar_tela();
+
                         break;
                     }
 
-                    printf("Resultados da busca:\n");
+                    printf(BRANCO "Resultados da busca:\n");
                     NO* atual = lista_resultado->topo;
                     while(atual != NULL)
                     {
-                        printf(" * %s (%i) - %s\n", atual->filme->titulo, atual->filme->ano, atual->filme->duracao);
+                        printf(BRANCO " * " VERDE "%s " AZUL "(" VERDE "%i" AZUL ") - " VERDE"%s\n", atual->filme->titulo, atual->filme->ano, atual->filme->duracao);
+                        printf(RESET);
+
                         atual = atual->proximo;
                     }
                     printf("\n\n");
+
+                    esperar_enter();
+                    limpar_tela();
 
                     // Liberar lista sem liberar filme
                     atual = lista_resultado->topo;
@@ -603,13 +716,18 @@ int main()
 
                     if (recomendado != NULL)
                     {
-                        printf("O filme indicado e %s (%i)\n", recomendado->titulo, recomendado->ano);
+                        printf(BRANCO "O filme indicado e " VERDE "%s " AZUL "(" VERDE "%i" AZUL ")\n", recomendado->titulo, recomendado->ano);
                     }
                     else
                     {
-                        printf("Voce ja assistiu todos os filmes cadastrados.\n");
+                        printf(VERMELHO "Voce ja assistiu todos os filmes cadastrados.\n");
+                        printf(RESET);
                     }
                     printf("\n\n");
+
+                    esperar_enter();
+                    limpar_tela();
+
                     break;
                 }
             case 5:
@@ -618,8 +736,13 @@ int main()
 
                     if (lista_resultado->quantidade == 0)
                     {
-                        printf("Nenhum filme encontrado.\n\n\n");
+                        printf(VERMELHO "Nenhum filme encontrado.\n\n\n");
+                        printf(RESET);
                         free(lista_resultado);
+
+                        esperar_enter();
+                        limpar_tela();
+
                         break;
                     }
 
@@ -630,7 +753,8 @@ int main()
                     }
 
                     fflush(stdin);
-                    printf("Quer deletar o filme %s (%i)? (sim/nao): ", filme_escolhido->titulo, filme_escolhido->ano);
+                    printf(BRANCO "Quer deletar o filme " VERDE "%s" BRANCO " " AZUL "(" VERDE "%i" AZUL ")" BRANCO "? (" VERDE "sim" BRANCO "/" VERDE "nao" BRANCO "): ", filme_escolhido->titulo, filme_escolhido->ano);
+                    printf(RESET);
                     char deletar_texto[255];
                     scanf(" %[^\n]", &deletar_texto);
                     bool deletar = strcmp(deletar_texto, "sim") == 0;
@@ -638,10 +762,14 @@ int main()
                     if (deletar)
                     {
                         deletar_filme(lista_filmes, filme_escolhido);
-                        printf("Filme deletado como sucesso!\n");
+                        printf(VERDE "Filme deletado como sucesso!\n");
+                        printf(RESET);
                     }
 
                     printf("\n\n");
+
+                    esperar_enter();
+                    limpar_tela();
 
                     // Liberar lista sem liberar filme
                     NO* atual = lista_resultado->topo;
@@ -662,10 +790,16 @@ int main()
                     break;
                 }
             case 9:
-                printf("Tchau!\n");
+                printf(VERDE "Tchau!\n");
+                printf(RESET);
                 return 0;
             default:
-                printf("Opcao nao existente ou digitada incorretamente. Favor digitar novamente.\n\n");
+                printf(VERMELHO "Opcao nao existente ou digitada incorretamente. Favor digitar novamente.\n\n");
+                printf(RESET);
+
+                esperar_enter();
+                limpar_tela();
+
                 break;
         }
     }
