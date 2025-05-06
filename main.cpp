@@ -328,6 +328,8 @@ void deletar_filme(LISTA* lista, FILME* filme_escolhido)
     }
 
     retirar_filme_do_meio(lista, filme_escolhido);
+
+    lista->quantidade--;
 }
 
 void trocar_filmes(LISTA *lista, NO *&anterior, NO *&atual, NO *&proximo)
