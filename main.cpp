@@ -500,6 +500,7 @@ int main()
         printf(VERDE "3 " AZUL "- Buscar filme\n");
         printf(VERDE "4 " AZUL "- Pegar recomendacao de filme\n");
         printf(VERDE "5 " AZUL "- Remover filme\n");
+        printf(VERDE "6 " AZUL "- Exibir todos detalhes de um filme\n");
         printf(VERDE "9 " AZUL "- Sair\n");
         printf(BRANCO "================================\n");
         printf("\n\nDigite a opcao(ex: " VERDE "1" BRANCO "): ");
@@ -768,6 +769,73 @@ int main()
                         printf(RESET);
                     }
 
+                    printf("\n\n");
+
+                    esperar_enter();
+                    limpar_tela();
+
+                    // Liberar lista sem liberar filme
+                    NO* atual = lista_resultado->topo;
+                    NO *proximo;
+
+                    while(atual != NULL)
+                    {
+                        proximo = atual->proximo;
+                        free(atual);
+                        atual = proximo;
+                    }
+
+                    lista_resultado->topo = NULL;
+                    lista_resultado->fim = NULL;
+                    lista_resultado->quantidade = 0;
+
+                    free(lista_resultado);
+                    break;
+                }
+            case 6:
+                {
+                    LISTA* lista_resultado = buscar_filmes(lista_filmes);
+
+                    if (lista_resultado->quantidade == 0)
+                    {
+                        printf(VERMELHO "Nenhum filme encontrado.\n\n\n");
+                        printf(RESET);
+                        free(lista_resultado);
+                        break;
+                    }
+
+                    FILME* filme_escolhido = escolher_filme(lista_resultado);
+                    if (filme_escolhido == NULL)
+                    {
+                        break;
+                    }
+
+                    printf(VERDE "%s" AZUL " (%d)" RESET "\n", filme_escolhido->titulo, filme_escolhido->ano);
+                    printf(BRANCO "Duracao: " VERDE "%s" BRANCO "\n", filme_escolhido->duracao);
+                    printf(BRANCO "Diretor: " VERDE "%s" BRANCO "\n", filme_escolhido->diretor);
+                    printf(BRANCO "Genero: " VERDE "%s" BRANCO "\n", filme_escolhido->genero);
+                    
+                    printf(BRANCO "Assistiu: ");
+                    if(filme_escolhido->assistiu)
+                    {
+                        printf(VERDE "Sim\n");
+
+                        printf(BRANCO "Gostou: ");
+                        if(filme_escolhido->gostou)
+                        {
+                            printf(VERDE "Sim\n");
+                        }
+                        else
+                        {
+                            printf(VERMELHO "Nao\n");
+                        }
+                    }
+                    else
+                    {
+                        printf(VERMELHO "Nao\n");
+                    }
+
+                    printf(RESET);
                     printf("\n\n");
 
                     esperar_enter();
