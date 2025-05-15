@@ -461,6 +461,34 @@ int calcular_pontuacao_diretor_e_genero(LISTA *lista_filmes, char diretor[255], 
     return pontuacao_diretor + pontuacao_genero;
 }
 
+void mostrar_filme(FILME *filme_escolhido)
+{
+    printf(VERDE "%s" AZUL " (%d)" RESET "\n", filme_escolhido->titulo, filme_escolhido->ano);
+    printf(BRANCO "Duracao: " VERDE "%s" BRANCO "\n", filme_escolhido->duracao);
+    printf(BRANCO "Diretor: " VERDE "%s" BRANCO "\n", filme_escolhido->diretor);
+    printf(BRANCO "Genero: " VERDE "%s" BRANCO "\n", filme_escolhido->genero);
+
+    printf(BRANCO "Assistiu: ");
+    if (filme_escolhido->assistiu)
+    {
+        printf(VERDE "Sim\n");
+
+        printf(BRANCO "Gostou: ");
+        if (filme_escolhido->gostou)
+        {
+            printf(VERDE "Sim\n");
+        }
+        else
+        {
+            printf(VERMELHO "Nao\n");
+        }
+    }
+    else
+    {
+        printf(VERMELHO "Nao\n");
+    }
+}
+
 int main()
 {
     struct LISTA* lista_filmes = (struct LISTA*) malloc(sizeof(struct LISTA));
@@ -501,7 +529,8 @@ int main()
         printf(VERDE "4 " AZUL "- Pegar recomendacao de filme\n");
         printf(VERDE "5 " AZUL "- Remover filme\n");
         printf(VERDE "6 " AZUL "- Exibir todos detalhes de um filme\n");
-        printf(VERDE "9 " AZUL "- Sair\n");
+        printf(VERDE "7 " AZUL "- Editar filme\n");
+        printf(VERDE "0 " AZUL "- Sair\n");
         printf(BRANCO "================================\n");
         printf("\n\nDigite a opcao(ex: " VERDE "1" BRANCO "): ");
         printf(RESET);
@@ -810,30 +839,7 @@ int main()
                         break;
                     }
 
-                    printf(VERDE "%s" AZUL " (%d)" RESET "\n", filme_escolhido->titulo, filme_escolhido->ano);
-                    printf(BRANCO "Duracao: " VERDE "%s" BRANCO "\n", filme_escolhido->duracao);
-                    printf(BRANCO "Diretor: " VERDE "%s" BRANCO "\n", filme_escolhido->diretor);
-                    printf(BRANCO "Genero: " VERDE "%s" BRANCO "\n", filme_escolhido->genero);
-                    
-                    printf(BRANCO "Assistiu: ");
-                    if(filme_escolhido->assistiu)
-                    {
-                        printf(VERDE "Sim\n");
-
-                        printf(BRANCO "Gostou: ");
-                        if(filme_escolhido->gostou)
-                        {
-                            printf(VERDE "Sim\n");
-                        }
-                        else
-                        {
-                            printf(VERMELHO "Nao\n");
-                        }
-                    }
-                    else
-                    {
-                        printf(VERMELHO "Nao\n");
-                    }
+                    mostrar_filme(filme_escolhido);
 
                     printf(RESET);
                     printf("\n\n");
@@ -859,7 +865,157 @@ int main()
                     free(lista_resultado);
                     break;
                 }
-            case 9:
+            case 7:
+                {
+                    LISTA* lista_resultado = buscar_filmes(lista_filmes);
+
+                    if (lista_resultado->quantidade == 0)
+                    {
+                        printf(VERMELHO "Nenhum filme encontrado.\n\n\n");
+                        printf(RESET);
+                        free(lista_resultado);
+                        break;
+                    }
+
+                    FILME* filme_escolhido = escolher_filme(lista_resultado);
+                    if (filme_escolhido == NULL)
+                    {
+                        break;
+                    }
+
+                    mostrar_filme(filme_escolhido);
+
+                    int opcao_edicao = 0;
+                    do
+                    {
+                        printf(BRANCO "\nEscolha um campo para editar:\n");
+                        printf(VERDE "1" BRANCO " - Titulo\n");
+                        printf(VERDE "2" BRANCO " - Ano\n");
+                        printf(VERDE "3" BRANCO " - Duracao\n");
+                        printf(VERDE "4" BRANCO " - Diretor\n");
+                        printf(VERDE "5" BRANCO " - Genero\n");
+                        printf(VERDE "6" BRANCO " - Status (assistiu)\n");
+                        if (filme_escolhido->assistiu)
+                        {
+                            printf(VERDE "7" BRANCO " - Avaliacao (gostou)\n");
+                        }
+                        printf(VERDE "0" BRANCO " - Finalizar edicao\n");
+                        printf(BRANCO "Opcao: ");
+                        printf(RESET);
+                        scanf("%i", &opcao_edicao);
+                
+                        switch (opcao_edicao)
+                        {
+                            case 1:
+                                {
+                                    printf(BRANCO "Novo titulo: ");
+                                    printf(RESET);
+                                    scanf(" %[^\n]", filme_escolhido->titulo);
+                                    break;
+                                }
+                            case 2:
+                                {
+                                    printf(BRANCO "Novo ano: ");
+                                    printf(RESET);
+                                    scanf("%d", &filme_escolhido->ano);
+                                    break;
+                                }
+                            case 3:
+                                {
+                                    printf(BRANCO "Nova duracao: ");
+                                    printf(RESET);
+                                    scanf(" %[^\n]", filme_escolhido->duracao);
+                                    break;
+                                }
+                            case 4:
+                                {
+                                    printf(BRANCO "Novo diretor: ");
+                                    printf(RESET);
+                                    scanf(" %[^\n]", filme_escolhido->diretor);
+                                    break;
+                                }
+                            case 5:
+                                {
+                                    printf(BRANCO "Novo genero: ");
+                                    printf(RESET);
+                                    scanf(" %[^\n]", filme_escolhido->genero);
+                                    break;
+                                }
+                            case 6:
+                                {
+                                    char resposta[4];
+                                    printf(BRANCO "Ja assistiu? (sim/nao): ");
+                                    printf(RESET);
+                                    scanf(" %[^\n]", resposta);
+                                    bool assistiu = strcmp(resposta, "sim") == 0;
+                                    filme_escolhido->assistiu = assistiu;
+                    
+                                    if (assistiu)
+                                    {
+                                        printf(BRANCO "Gostou do filme? (sim/nao): ");
+                                        printf(RESET);
+                                        scanf(" %[^\n]", resposta);
+                                        bool gostou = strcmp(resposta, "sim") == 0;
+                                        filme_escolhido->gostou = gostou;
+                                    }
+                                    else
+                                    {
+                                        filme_escolhido->gostou = false;
+                                    }
+                                    break;
+                                }
+                            case 7:
+                                {
+                                    if (filme_escolhido->assistiu)
+                                    {
+                                        char resposta[4];
+                                        printf(BRANCO "Gostou do filme? (sim/nao): ");
+                                        printf(RESET);
+                                        scanf(" %[^\n]", resposta);
+                                        bool gostou = strcmp(resposta, "sim") == 0;
+                                        filme_escolhido->gostou = gostou;
+                                    }
+                                    break;
+                                }
+                            case 0:
+                                {
+                                    printf(VERDE "Edicao concluida!\n\n");
+                                    printf(RESET);
+                                    break;
+                                }
+                            default:
+                                {
+                                    printf(VERMELHO "Opcao invalida!\n");
+                                    printf(RESET);
+                                }
+                        }
+                    } while (opcao_edicao != 0);
+
+                    printf(RESET);
+                    printf("\n\n");
+
+                    esperar_enter();
+                    limpar_tela();
+
+                    // Liberar lista sem liberar filme
+                    NO* atual = lista_resultado->topo;
+                    NO *proximo;
+
+                    while(atual != NULL)
+                    {
+                        proximo = atual->proximo;
+                        free(atual);
+                        atual = proximo;
+                    }
+
+                    lista_resultado->topo = NULL;
+                    lista_resultado->fim = NULL;
+                    lista_resultado->quantidade = 0;
+
+                    free(lista_resultado);
+                    break;
+                }
+            case 0:
                 printf(VERDE "Tchau!\n");
                 printf(RESET);
                 return 0;
