@@ -10,6 +10,8 @@
 #include <unistd.h>
 #endif
 
+#define NOME_ARQUIVO "filmes.csv"
+
 #define PRETO "\x1b[38;5;0m"
 #define VERMELHO "\x1b[38;5;9m"
 #define VERMELHO_ESCURO "\x1b[38;5;1m"
@@ -487,6 +489,35 @@ void mostrar_filme(FILME *filme_escolhido)
     {
         printf(VERMELHO "Nao\n");
     }
+}
+
+void exportar_filmes_csv(LISTA *lista)
+{
+    FILE *arquivo = fopen(NOME_ARQUIVO, "w");
+    if (arquivo == NULL)
+    {
+        printf(VERMELHO "Erro ao salvar arquivo!\n");
+        printf(RESET);
+        return;
+    }
+
+    NO *atual = lista->topo;
+    while (atual != NULL)
+    {
+        fprintf(
+            arquivo,
+            "%s,%d,%s,%s,%s,%d,%d\n",
+            atual->filme->titulo,
+            atual->filme->ano,
+            atual->filme->duracao,
+            atual->filme->diretor,
+            atual->filme->genero,
+            atual->filme->assistiu ? 1 : 0,
+            atual->filme->gostou ? 1 : 0
+        );
+        atual = atual->proximo;
+    }
+    fclose(arquivo);
 }
 
 int main()
@@ -1018,6 +1049,9 @@ int main()
             case 0:
                 printf(VERDE "Tchau!\n");
                 printf(RESET);
+
+                exportar_filmes_csv(lista_filmes);
+                liberar_lista(lista_filmes);
                 return 0;
             default:
                 printf(VERMELHO "Opcao nao existente ou digitada incorretamente. Favor digitar novamente.\n\n");
