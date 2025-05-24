@@ -491,6 +491,41 @@ void mostrar_filme(FILME *filme_escolhido)
     }
 }
 
+void importar_filmes_csv(LISTA *lista)
+{
+    FILE *arquivo = fopen(NOME_ARQUIVO, "r");
+    if (arquivo == NULL)
+    {
+        return; // Arquivo não existe (primeira execução)
+    }
+
+    char linha[1024];
+    while (fgets(linha, sizeof(linha), arquivo))
+    {
+        linha[strcspn(linha, "\n")] = '\0'; // Remove quebra de linha
+
+        char *titulo = strtok(linha, ",");
+        char *ano_str = strtok(NULL, ",");
+        char *duracao = strtok(NULL, ",");
+        char *diretor = strtok(NULL, ",");
+        char *genero = strtok(NULL, ",");
+        char *assistiu_str = strtok(NULL, ",");
+        char *gostou_str = strtok(NULL, ",");
+
+        if (!titulo || !ano_str || !duracao || !diretor || !genero || !assistiu_str || !gostou_str)
+        {
+            continue; // Linha inválida
+        }
+
+        int ano = atoi(ano_str);
+        bool assistiu = atoi(assistiu_str) == 1;
+        bool gostou = atoi(gostou_str) == 1;
+
+        cadastrar_filme(lista, titulo, ano, duracao, diretor, genero, assistiu, gostou);
+    }
+    fclose(arquivo);
+}
+
 void exportar_filmes_csv(LISTA *lista)
 {
     FILE *arquivo = fopen(NOME_ARQUIVO, "w");
@@ -527,15 +562,7 @@ int main()
     lista_filmes->fim = NULL;
     lista_filmes->quantidade = 0;
 
-    cadastrar_filme(lista_filmes, "Emoji Filme", 2018, "2h", "Tony Leondis", "Animacao", false, false);
-    cadastrar_filme(lista_filmes, "Scott Pilgrim Contra o Mundo", 2007, "3h 10m", "Edgar Wright", "Comedia", true, true);
-    cadastrar_filme(lista_filmes, "The Batman", 2022, "3h", "Matt Reeves", "Crime", false, false);
-    cadastrar_filme(lista_filmes, "Parasita", 2019, "2h 13m", "Bong Joon Ho", "Comedia", true, true);
-    cadastrar_filme(lista_filmes, "Expresso do Amanha", 2013, "2h 7m", "Bong Joon Ho", "Ficcao Cientifica", true, true);
-    cadastrar_filme(lista_filmes, "Rua Cloverfield, 10", 2004, "2h 10m", "Dan Trachtenberg", "Ficcao Cientifica", true, true);
-    cadastrar_filme(lista_filmes, "The End of Evangelion", 1997, "1h 13m", "Hideaki Anno", "Animacao", true, false);
-    cadastrar_filme(lista_filmes, "Filme Lego", 2014, "2h", "Christopher Miller", "Animacao", true, false);
-    cadastrar_filme(lista_filmes, "Mickey 17", 2025, "2h 17m", "Bong Joon Ho", "Ficcao Cientifica", false, false);
+    importar_filmes_csv(lista_filmes);
 
     printf(BRANCO "================================\n");
     printf(VERDE "       Catalogo de filmes       \n");
